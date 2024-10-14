@@ -92,30 +92,26 @@ namespace GuiderCRUD_API.Controllers
                 return BadRequest();
             }
 
-            var venue = await _context.Venues.FindAsync(id);
+            // Найти существующее заведение по ID
+            var venue = await _context.Venues
+                .Include(v => v.Tags)
+                .FirstOrDefaultAsync(v => v.Id == id);
+
+            //var venue = await _context.Venues.FindAsync(id);
 
             if (venue == null)
             {
-                return NotFound();
+                return NotFound(new { message = "Venue not found" });
             }
+
+            // Найти теги по списку TagIds
+            var tags = await _context.Tags
+                .Where(tag => updateVenueDto.TagIds.Contains(tag.Id))
+                .ToListAsync();
 
             _mapper.Map(updateVenueDto, venue);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!VenueExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            
 
             return NoContent();
         }
