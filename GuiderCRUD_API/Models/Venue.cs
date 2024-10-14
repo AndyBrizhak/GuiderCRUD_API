@@ -6,6 +6,7 @@ namespace GuiderCRUD_API.Models
     public class Venue
     {
         [Key] // Указывает на первичный ключ
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Required] // Поле обязательно для заполнения
@@ -25,6 +26,6 @@ namespace GuiderCRUD_API.Models
         public required Category Category { get; set; }
 
         // Связь "многие ко многим" с тегами
-        
+        public ICollection<Tag> Tags { get; set; }
     }
 }

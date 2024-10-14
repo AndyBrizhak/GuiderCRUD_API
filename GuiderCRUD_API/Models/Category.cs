@@ -1,10 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GuiderCRUD_API.Models
 {
     public class Category
     {
         [Key] // Указывает на первичный ключ
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]   
         public int Id { get; set; }
 
         [Required] // Поле обязательно для заполнения
