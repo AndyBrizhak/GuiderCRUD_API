@@ -31,11 +31,14 @@ namespace GuiderCRUD_API.Controllers
         }
 
         // GET: api/Venue/5
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<ActionResult<VenueDto>> GetVenue(int id)
         {
+            if (id == 0)
+            {
+                return BadRequest("Id = 0");
+            }
             var venue = await _context.Venues.Include(v => v.Category).FirstOrDefaultAsync(v => v.Id == id);
-
             if (venue == null)
             {
                 return NotFound();
