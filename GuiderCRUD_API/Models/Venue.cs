@@ -16,7 +16,7 @@ namespace GuiderCRUD_API.Models
         [Required] // Поле обязательно для заполнения
         public required string Address { get; set; }
 
-        public string Descriprion { get; set; }
+        public string? Descriprion { get; set; }
 
         // Внешний ключ, указывающий на Category (Категория)
         [ForeignKey("Category")]
@@ -26,6 +26,6 @@ namespace GuiderCRUD_API.Models
         public required Category Category { get; set; }
 
         // Связь "многие ко многим" с тегами
-        public ICollection<Tag> Tags { get; set; }
+        public required ICollection<Tag> Tags { get; set; }
     }
 }
