@@ -84,8 +84,8 @@ namespace GuiderCRUD_API.Controllers
         }
 
         // PUT: api/Venue/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutVenue(int id, VenueUpdateDto updateVenueDto)
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateVenue(int id, VenueUpdateDto updateVenueDto)
         {
             if (id != updateVenueDto.Id)
             {
