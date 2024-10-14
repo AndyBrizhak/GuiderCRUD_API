@@ -23,9 +23,9 @@ namespace GuiderCRUD_API.Models
         public int CategoryId { get; set; }
 
         // Связь с моделью Category — каждое заведение относится к одной категории
-        public required Category Category { get; set; }
+        public Category Category { get; set; }
 
         // Связь "многие ко многим" с тегами
-        public required ICollection<Tag> Tags { get; set; }
+        public  ICollection<Tag> Tags { get; set; }
     }
 }

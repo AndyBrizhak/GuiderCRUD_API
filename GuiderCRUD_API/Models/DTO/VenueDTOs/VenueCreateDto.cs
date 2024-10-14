@@ -8,7 +8,7 @@ namespace GuiderCRUD_API.Models.DTO
         public required string Address { get; set; }
         public string? Descriprion { get; set; }
         public int CategoryId { get; set; }
-        public required string CategoryName { get; set; }
+        //public required string CategoryName { get; set; }
         public List<TagDto>? Tags { get; set; }
     }
 }
