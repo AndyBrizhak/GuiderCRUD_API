@@ -16,6 +16,6 @@ namespace GuiderCRUD_API.Models
         public string? Description { get; set; }
 
         // Связь с таблицей Venue — одна категория имеет много заведений
-        public required ICollection<Venue> Venues { get; set; }
+        public ICollection<Venue>? Venues { get; set; }
     }
 }
