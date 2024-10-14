@@ -49,7 +49,7 @@ namespace GuiderCRUD_API.Controllers
 
         // POST: api/Venue
         [HttpPost]
-        public async Task<ActionResult<Venue>> PostVenue(VenueCreateDto venueCreateDto)
+        public async Task<ActionResult<VenueCreateDto>> CreateVenue(VenueCreateDto venueCreateDto)
         {
             // Найти категорию по CategoryId
             var category = await _context.Categories.FindAsync(venueCreateDto.CategoryId);
@@ -80,10 +80,10 @@ namespace GuiderCRUD_API.Controllers
 
             _context.Venues.Add(venue);
             await _context.SaveChangesAsync();
-
+            //var venueDto = _mapper.Map<VenueDto>(venue);
             // Вернуть результат с созданным объектом
-            //return CreatedAtAction(nameof(GetVenue), new { id = venue.Id }, venue);
-            return NoContent();
+            return CreatedAtAction(nameof(GetVenue), new { id = venue.Id }, venueCreateDto);
+            //return NoContent();
         }
 
         // PUT: api/Venue/5
