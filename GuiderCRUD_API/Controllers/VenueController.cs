@@ -46,15 +46,41 @@ namespace GuiderCRUD_API.Controllers
 
         // POST: api/Venue
         [HttpPost]
-        public async Task<ActionResult<VenueDto>> PostVenue(VenueCreateDto createVenueDto)
+        public async Task<ActionResult<Venue>> PostVenue(VenueCreateDto venueCreateDto)
         {
-            var venue = _mapper.Map<Venue>(createVenueDto);
+            // Найти категорию по CategoryId
+            var category = await _context.Categories.FindAsync(venueCreateDto.CategoryId);
+            if (category == null)
+            {
+                return NotFound(new { message = "Category not found" });
+            }
+
+            // Найти теги по списку TagIds
+            var tags = await _context.Tags
+                .Where(tag => venueCreateDto.TagIds.Contains(tag.Id))
+                .ToListAsync();
+
+            if (!tags.Any())
+            {
+                return NotFound(new { message = "No valid tags found" });
+            }
+
+            // Создать новое Venue и установить связи с категорией и тегами
+            var venue = new Venue
+            {
+                Name = venueCreateDto.Name,
+                Address = venueCreateDto.Address,
+                Descriprion = venueCreateDto.Descriprion,
+                Category = category, // Связь с категорией
+                Tags = tags          // Связь с тегами
+            };
 
             _context.Venues.Add(venue);
             await _context.SaveChangesAsync();
 
-            var venueDto = _mapper.Map<VenueDto>(venue);
-            return CreatedAtAction(nameof(GetVenue), new { id = venue.Id }, venueDto);
+            // Вернуть результат с созданным объектом
+            //return CreatedAtAction(nameof(GetVenue), new { id = venue.Id }, venue);
+            return NoContent();
         }
 
         // PUT: api/Venue/5
