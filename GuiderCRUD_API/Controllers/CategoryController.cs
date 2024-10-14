@@ -28,7 +28,7 @@ namespace GuiderCRUD_API.Controllers
         {
             //return await _db.Categories.ToListAsync();
             IEnumerable<Category> categoryList = await _db.Categories.ToListAsync();
-            return Ok(_mapper.Map<CategoryDto>(categoryList));
+            return Ok(_mapper.Map<List<CategoryDto>>(categoryList));
         }
 
         [HttpGet("{id}")]
