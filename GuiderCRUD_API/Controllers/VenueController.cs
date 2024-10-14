@@ -51,39 +51,54 @@ namespace GuiderCRUD_API.Controllers
         [HttpPost]
         public async Task<ActionResult<VenueCreateDto>> CreateVenue(VenueCreateDto venueCreateDto)
         {
-            // Найти категорию по CategoryId
-            var category = await _context.Categories.FindAsync(venueCreateDto.CategoryId);
-            if (category == null)
+            try
             {
-                return NotFound(new { message = "Category not found" });
+                if (ModelState.IsValid)
+                {
+                    // Найти категорию по CategoryId
+                    var category = await _context.Categories.FindAsync(venueCreateDto.CategoryId);
+                    if (category == null)
+                    {
+                        return NotFound(new { message = "Category not found" });
+                    }
+
+                    // Найти теги по списку TagIds
+                    var tags = await _context.Tags
+                        .Where(tag => venueCreateDto.TagIds.Contains(tag.Id))
+                        .ToListAsync();
+
+                    if (!tags.Any())
+                    {
+                        return NotFound(new { message = "No valid tags found" });
+                    }
+
+                    // Создать новое Venue и установить связи с категорией и тегами
+                    var venue = new Venue
+                    {
+                        Name = venueCreateDto.Name,
+                        Address = venueCreateDto.Address,
+                        Descriprion = venueCreateDto.Descriprion,
+                        Category = category, // Связь с категорией
+                        Tags = tags          // Связь с тегами
+                    };
+
+                    _context.Venues.Add(venue);
+                    await _context.SaveChangesAsync();
+                    //var venueDto = _mapper.Map<VenueDto>(venue);
+                    // Вернуть результат с созданным объектом
+                    return CreatedAtAction(nameof(GetVenue), new { id = venue.Id }, venueCreateDto);
+                    //return NoContent();
+                }
+                else 
+                {
+                    return BadRequest("Model not valid");
+                }
+
             }
-
-            // Найти теги по списку TagIds
-            var tags = await _context.Tags
-                .Where(tag => venueCreateDto.TagIds.Contains(tag.Id))
-                .ToListAsync();
-
-            if (!tags.Any())
+            catch (Exception ex) 
             {
-                return NotFound(new { message = "No valid tags found" });
+                return BadRequest(ex.Message.ToString());
             }
-
-            // Создать новое Venue и установить связи с категорией и тегами
-            var venue = new Venue
-            {
-                Name = venueCreateDto.Name,
-                Address = venueCreateDto.Address,
-                Descriprion = venueCreateDto.Descriprion,
-                Category = category, // Связь с категорией
-                Tags = tags          // Связь с тегами
-            };
-
-            _context.Venues.Add(venue);
-            await _context.SaveChangesAsync();
-            //var venueDto = _mapper.Map<VenueDto>(venue);
-            // Вернуть результат с созданным объектом
-            return CreatedAtAction(nameof(GetVenue), new { id = venue.Id }, venueCreateDto);
-            //return NoContent();
         }
 
         // PUT: api/Venue/5
