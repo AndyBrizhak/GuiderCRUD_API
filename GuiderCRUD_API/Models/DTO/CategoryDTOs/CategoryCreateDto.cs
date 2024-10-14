@@ -1,6 +1,6 @@
-﻿namespace GuiderCRUD_API.Models.DTO
+﻿namespace GuiderCRUD_API.Models.DTO.CategoryDTOs
 {
-    public class TagDto
+    public class CategorCreateDto
     {
         public int Id { get; set; }
         public required string Name { get; set; }
