@@ -14,7 +14,7 @@ namespace GuiderCRUD_API
         {
             CreateMap<Category, CategoryDto>().ReverseMap();
             CreateMap<Category, CategoryUpdateDto>().ReverseMap(); 
-            CreateMap<Category, CategorCreateDto>().ReverseMap();
+            CreateMap<Category, CategoryCreateDto>().ReverseMap();
 
             CreateMap<Tag, TagDto>().ReverseMap();
             CreateMap<TagCreateDto, Tag>().ReverseMap();

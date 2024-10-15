@@ -34,30 +34,65 @@ namespace GuiderCRUD_API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<CategoryDto>> GetCategory(int id)
         {
-            var category = await _db.Categories.FindAsync(id);
+            //var category = await _db.Categories.FindAsync(id);
+            var category = await _db.Categories
+        .Include(c => c.Venues) // Включаем связанные заведения
+        .FirstOrDefaultAsync(c => c.Id == id);
 
             if (category == null)
             {
                 return NotFound();
             }
 
-            return _mapper.Map<CategoryDto>(category);
+            return Ok (_mapper.Map<CategoryDto>(category));
         }
 
         // POST: api/Category
         [HttpPost]
-        public async Task<ActionResult<CategoryDto>> PostCategory(CategorCreateDto createCategoryDto)
-        {
-            var category = new Category
-            {
-                Name = createCategoryDto.Name,
-                Description = createCategoryDto.Description
-            };
+        //public async Task<ActionResult<CategoryDto>> PostCategory(CategorCreateDto createCategoryDto)
+        //{
+        //    var category = new Category
+        //    {
+        //        Name = createCategoryDto.Name,
+        //        Description = createCategoryDto.Description
+        //    };
 
-            _db.Categories.Add(category);
+        //    _db.Categories.Add(category);
+        //    await _db.SaveChangesAsync();
+
+        //    return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
+        //}
+        public async Task<IActionResult> CreateCategory([FromBody] CategoryCreateDto categoryCreateDto)
+        {
+            // Проверка на корректность переданных данных
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Создаем новый объект Category с помощью AutoMapper
+            var newCategory = _mapper.Map<Category>(categoryCreateDto);
+
+            // Если есть связанные заведения, получаем их по ID
+            if (categoryCreateDto.VenueIds != null && categoryCreateDto.VenueIds.Any())
+            {
+                var venues = await _db.Venues
+                    .Where(v => categoryCreateDto.VenueIds.Contains(v.Id))
+                    .ToListAsync();
+
+                // Добавляем связанные заведения к категории
+                newCategory.Venues = venues;
+            }
+
+            // Добавляем категорию в контекст
+            _db.Categories.Add(newCategory);
+
+            // Сохраняем изменения в базе данных
             await _db.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
+            // Возвращаем созданный объект с кодом 201 (Created) и ссылкой на него
+            //return CreatedAtAction(nameof(GetCategory), new { id = newCategory.Id }, newCategory);
+            return Ok();
         }
 
         // PUT: api/Category/5
