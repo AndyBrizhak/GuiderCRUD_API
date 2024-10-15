@@ -33,7 +33,10 @@ namespace GuiderCRUD_API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TagDto>> GetTag(int id)
         {
-            var tag = await _context.Tags.FindAsync(id);
+            //var tag = await _context.Tags.FindAsync(id);
+            var tag = await _context.Tags
+        .Include(t => t.Venues) // Загрузка связанных заведений
+        .FirstOrDefaultAsync(t => t.Id == id);
 
             if (tag == null)
             {
