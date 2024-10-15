@@ -42,19 +42,41 @@ namespace GuiderCRUD_API.Controllers
 
             return Ok(_mapper.Map<TagDto>(tag));
         }
-
-        // POST: api/Tag
+                
         [HttpPost]
-        public async Task<ActionResult<TagDto>> PostTag(TagCreateDto createTagDto)
+        public async Task<IActionResult> CreateTag([FromBody] TagCreateDto tagCreateDto)
         {
-            var tag = _mapper.Map<Tag>(createTagDto);
+            // Проверка на корректность переданных данных
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
+            // Использование AutoMapper для преобразования TagCreateDto в модель Tag
+            var tag = _mapper.Map<Tag>(tagCreateDto);
+
+            // Поиск заведений по переданным ID
+            if (tagCreateDto.VenueIds != null && tagCreateDto.VenueIds.Any())
+            {
+                var venues = await _context.Venues
+                    .Where(v => tagCreateDto.VenueIds.Contains(v.Id))
+                    .ToListAsync();
+
+                // Связывание заведений с тегом
+                tag.Venues = venues;
+            }
+
+            // Добавление нового тега в контекст базы данных
             _context.Tags.Add(tag);
+
+            // Сохранение изменений в базе данных
             await _context.SaveChangesAsync();
 
+            // Возвращаем ответ с созданным тегом
             var tagDto = _mapper.Map<TagDto>(tag);
-            return CreatedAtAction(nameof(GetTag), new { id = tag.Id }, tagDto);
+            return CreatedAtAction(nameof(GetTag), new { id = tagDto.Id }, tagDto);
         }
+
 
         // PUT: api/Tag/5
         [HttpPut("{id}")]
