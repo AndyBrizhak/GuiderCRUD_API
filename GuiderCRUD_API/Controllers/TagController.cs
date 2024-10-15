@@ -82,23 +82,80 @@ namespace GuiderCRUD_API.Controllers
 
 
         // PUT: api/Tag/5
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> PutTag(int id, TagUpdateDto updateTagDto)
+        //{
+        //    if (id != updateTagDto.Id)
+        //    {
+        //        return BadRequest();
+        //    }
+
+        //    var tag = await _context.Tags.FindAsync(id);
+
+        //    if (tag == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    _mapper.Map(updateTagDto, tag);
+
+        //    try
+        //    {
+        //        await _context.SaveChangesAsync();
+        //    }
+        //    catch (DbUpdateConcurrencyException)
+        //    {
+        //        if (!TagExists(id))
+        //        {
+        //            return NotFound();
+        //        }
+        //        else
+        //        {
+        //            throw;
+        //        }
+        //    }
+
+        //    return NoContent();
+        //}
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTag(int id, TagUpdateDto updateTagDto)
+        public async Task<IActionResult> UpdateTag(int id, [FromBody] TagUpdateDto tagUpdateDto)
         {
-            if (id != updateTagDto.Id)
+            // Проверка на корректность переданных данных
+            if (!ModelState.IsValid)
             {
-                return BadRequest();
+                return BadRequest(ModelState);
             }
 
-            var tag = await _context.Tags.FindAsync(id);
+            // Поиск тега по ID
+            var tagFromDb = await _context.Tags
+                .Include(t => t.Venues) // Включаем связанные заведения для обновления связи
+                .FirstOrDefaultAsync(t => t.Id == id);
 
-            if (tag == null)
+            if (tagFromDb == null)
             {
                 return NotFound();
             }
 
-            _mapper.Map(updateTagDto, tag);
+            // Обновляем основные поля тега с помощью AutoMapper
+            _mapper.Map(tagUpdateDto, tagFromDb);
 
+            // Обновляем связи "многие ко многим"
+            if (tagUpdateDto.VenueIds != null && tagUpdateDto.VenueIds.Any())
+            {
+                // Получаем список заведений по переданным ID
+                var updatedVenues = await _context.Venues
+                    .Where(v => tagUpdateDto.VenueIds.Contains(v.Id))
+                    .ToListAsync();
+
+                // Удаляем старые связи
+                tagFromDb.Venues.Clear();
+
+                // Добавляем новые связи
+                tagFromDb.Venues = updatedVenues;
+            }
+
+            // Сохранение изменений в базе данных
             try
             {
                 await _context.SaveChangesAsync();
@@ -109,14 +166,12 @@ namespace GuiderCRUD_API.Controllers
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
 
             return NoContent();
         }
+
 
         // DELETE: api/Tag/5
         [HttpDelete("{id}")]
