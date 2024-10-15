@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GuiderCRUD_API.Models.DTO;
+using System.Net;
 
 namespace GuiderCRUD_API.Controllers
 {
@@ -67,10 +68,10 @@ namespace GuiderCRUD_API.Controllers
                         .Where(tag => venueCreateDto.TagIds.Contains(tag.Id))
                         .ToListAsync();
 
-                    if (!tags.Any())
-                    {
-                        return NotFound(new { message = "No valid tags found" });
-                    }
+                    //if (!tags.Any())
+                    //{
+                    //    return NotFound(new { message = "No valid tags found" });
+                    //}
 
                     // Создать новое Venue и установить связи с категорией и тегами
                     var venue = new Venue
@@ -105,33 +106,52 @@ namespace GuiderCRUD_API.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateVenue(int id, VenueUpdateDto updateVenueDto)
         {
-            if (id != updateVenueDto.Id)
+            if (ModelState.IsValid)
             {
-                return BadRequest();
+                if (id != updateVenueDto.Id || updateVenueDto ==null)
+                {
+                    return BadRequest();
+                }
+                // Найти категорию по CategoryId
+                var category = await _context.Categories.FindAsync(updateVenueDto.CategoryId);
+                if (category == null)
+                {
+                    return NotFound(new { message = "Category not found" });
+                }
+                // Найти теги по списку TagIds
+                var tags = await _context.Tags
+                    .Where(tag => updateVenueDto.TagIds.Contains(tag.Id))
+                    .ToListAsync();
+                //if (!tags.Any())
+                //{
+                //    return NotFound(new { message = "No valid tags found" });
+                //}
+                // Найти существующее заведение по ID
+                var venueFromDb = await _context.Venues
+                    .Include(v => v.Tags)
+                    .Include(v => v.Category)
+                    .FirstOrDefaultAsync(v => v.Id == id);
+                if (venueFromDb == null)
+                {
+                    return NotFound(new { message = "Venue not found" });
+                }
+                // Найти теги по списку TagIds
+                //var tags = await _context.Tags
+                //    .Where(tag => updateVenueDto.TagIds.Contains(tag.Id))
+                //    .ToListAsync();
+                //_mapper.Map(updateVenueDto, venue);
+                //return NoContent();
+                if (updateVenueDto.Name != null)  venueFromDb.Name = updateVenueDto.Name;
+                if (updateVenueDto.Address != null)  venueFromDb.Address = updateVenueDto.Address; 
+                if (category != null)  venueFromDb.Category = category;
+                if (tags != null) venueFromDb.Tags=tags ;
+                _context.Update(venueFromDb);
+                _context.SaveChanges();
+                return NoContent();
             }
-
-            // Найти существующее заведение по ID
-            var venue = await _context.Venues
-                .Include(v => v.Tags)
-                .FirstOrDefaultAsync(v => v.Id == id);
-
-            //var venue = await _context.Venues.FindAsync(id);
-
-            if (venue == null)
-            {
-                return NotFound(new { message = "Venue not found" });
-            }
-
-            // Найти теги по списку TagIds
-            var tags = await _context.Tags
-                .Where(tag => updateVenueDto.TagIds.Contains(tag.Id))
-                .ToListAsync();
-
-            _mapper.Map(updateVenueDto, venue);
+            return BadRequest("Model not vald");
 
             
-
-            return NoContent();
         }
 
         // DELETE: api/Venue/5
